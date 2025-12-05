@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,7 +13,6 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -24,6 +24,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,17 +51,16 @@ fun HomeReceiverScreen(
     val primaryColor = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.secondary
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
+            modifier = Modifier.fillMaxSize()
         ) {
 
-            // ================= HEADER =================
+            // header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -74,7 +74,6 @@ fun HomeReceiverScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                    // KIRI: Logo + Sapaan
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Image(
                             painter = painterResource(id = R.drawable.logo),
@@ -92,14 +91,13 @@ fun HomeReceiverScreen(
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                text = "Pilih Makanan yang masih tersedia dalam rentang waktu pengambilan.",
+                                text = "Pilih makanan yang tersedia sesuai\n batas waktu pengambilan.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
                             )
                         }
                     }
 
-                    // KANAN: Refresh + Menu hamburger (Profil & Logout)
                     Row(verticalAlignment = Alignment.CenterVertically) {
 
                         IconButton(onClick = onRefresh) {
@@ -145,7 +143,6 @@ fun HomeReceiverScreen(
                 }
             }
 
-            // progress refresh tipis di bawah header
             if (isRefreshing) {
                 LinearProgressIndicator(
                     modifier = Modifier
@@ -155,29 +152,82 @@ fun HomeReceiverScreen(
                 )
             }
 
-            Spacer(Modifier.height(16.dp))
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 6.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 16.dp, bottom = 8.dp)
+                ) {
 
-            // ===== LIST MAKANAN =====
-            if (foods.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Belum ada donasi makanan saat ini.",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(foods) { food ->
-                        ReceiverFoodItem(
-                            food = food,
-                            onClick = { onFoodClick(food) }
-                        )
+                    // Title + Riwayat
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Makanan Tersedia",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "Pilih donasi makanan yang masih aktif.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                        }
+
+                        TextButton(onClick = onHistoryClick) {
+                            Text(
+                                text = "Riwayat",
+                                color = primaryColor,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    // list dan kalau kosong
+                    if (foods.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Belum ada donasi makanan saat ini.",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(
+                                horizontal = 16.dp,
+                                vertical = 8.dp
+                            )
+                        ) {
+                            items(foods) { food ->
+                                ReceiverFoodItem(
+                                    food = food,
+                                    onClick = { onFoodClick(food) }
+                                )
+                            }
+                        }
                     }
                 }
             }

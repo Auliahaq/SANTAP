@@ -9,7 +9,6 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlin.random.Random
 
-// Supabase
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.storage.storage
 
@@ -20,13 +19,13 @@ class FoodRepository(
 ) {
 
     companion object {
-        private const val BUCKET_NAME = "santap-photos"          // samakan dengan nama bucket di Supabase
+        private const val BUCKET_NAME = "santap-photos"
         private const val FOOD_PATH_PREFIX = "images/food_postings"
     }
 
-    // -------------------------
-    // 1. Tambah Donasi (Donor)
-    // -------------------------
+    /**
+     * Posting Donasi Food.
+     */
     suspend fun addFoodDonation(
         context: Context,
         name: String,
@@ -42,13 +41,12 @@ class FoodRepository(
                 ?: return Result.failure(Exception("User belum login"))
 
             if (imageUri == null) {
-                return Result.failure(Exception("Foto makanan wajib diunggah."))
+                return Result.failure(Exception("Foto wajib diunggah."))
             }
 
             val docRef = db.collection("foods").document()
             val foodId = docRef.id
 
-            // 1. Upload foto ke Supabase Storage
             val photoUrl = uploadFoodImage(context, imageUri, foodId).getOrElse {
                 return Result.failure(it)
             }
@@ -73,9 +71,9 @@ class FoodRepository(
         }
     }
 
-    // -------------------------
-    // Helper: Upload Foto ke Supabase Storage
-    // -------------------------
+    /**
+     * Helper: Unggah foto ke Supabase.
+     */
     suspend fun uploadFoodImage(
         context: Context,
         imageUri: Uri,
@@ -84,26 +82,18 @@ class FoodRepository(
         return try {
             val filePath = "$FOOD_PATH_PREFIX/$foodId.jpg"
 
-            // 1. Baca file dari Uri → ByteArray
             val imageBytes = withContext(Dispatchers.IO) {
                 context.contentResolver.openInputStream(imageUri)?.use { input ->
                     input.readBytes()
                 } ?: throw Exception("Gagal membaca file foto.")
             }
 
-            // 2. Ambil bucket dari Supabase Storage
             val bucket = supabase.storage.from(BUCKET_NAME)
 
-            // 3. Upload (suspend, tidak perlu .await())
             withContext(Dispatchers.IO) {
-                bucket.upload(
-                    path = filePath,
-                    data = imageBytes,
-                    upsert = true
-                )
+                bucket.upload(path = filePath, data = imageBytes, upsert = true)
             }
 
-            // 4. Ambil public URL (pastikan bucket public di dashboard Supabase)
             val downloadUrl = bucket.publicUrl(filePath)
 
             Result.success(downloadUrl)
@@ -112,9 +102,9 @@ class FoodRepository(
         }
     }
 
-    // -------------------------
-// 2. List Donasi untuk Donor
-// -------------------------
+    /**
+     * Daftar donasi aktif untuk Donor.
+     */
     suspend fun getFoodsForDonor(): Result<List<Food>> {
         return try {
             val donorId = auth.currentUser?.uid
@@ -124,12 +114,10 @@ class FoodRepository(
 
             val snapshot = db.collection("foods")
                 .whereEqualTo("donorId", donorId)
-                .get()
-                .await()
+                .get().await()
 
             val foods = snapshot.documents
                 .mapNotNull { it.toObject(Food::class.java) }
-                // Hanya tampilkan yang masih ada porsinya dan belum lewat batas waktu
                 .filter { it.remaining > 0 && it.expiresAt > now }
                 .sortedByDescending { it.expiresAt }
 
@@ -139,22 +127,19 @@ class FoodRepository(
         }
     }
 
-    // -------------------------
-// 3. List Donasi untuk Penerima
-// -------------------------
+    /**
+     * Daftar donasi aktif untuk Penerima.
+     */
     suspend fun getFoodsForReceiver(): Result<List<Food>> {
         return try {
             val now = System.currentTimeMillis()
 
             val snapshot = db.collection("foods")
-                // Sudah filter yang belum lewat batas waktu
                 .whereGreaterThan("expiresAt", now)
-                .get()
-                .await()
+                .get().await()
 
             val foods = snapshot.documents
                 .mapNotNull { it.toObject(Food::class.java) }
-                // Tambahan: hanya yang masih punya porsi
                 .filter { it.remaining > 0 }
                 .sortedByDescending { it.expiresAt }
 
@@ -164,15 +149,12 @@ class FoodRepository(
         }
     }
 
-    // -------------------------
-    // Helper: kode verifikasi acak 6 digit
-    // -------------------------
     private fun generateVerificationCode(): String =
         Random.nextInt(100000, 999999).toString()
 
-    // ----------------------------------------------------
-    // 4. Receiver klik "Ambil Makanan" → PROSES KLAIM
-    // ----------------------------------------------------
+    /**
+     * Memproses klaim (mengurangi porsi Food & buat Claim baru).
+     */
     suspend fun processFoodClaim(
         food: Food,
         claimedPortions: Int,
@@ -190,9 +172,9 @@ class FoodRepository(
                 val foodSnap = transaction.get(foodRef)
                 val currentRemaining = foodSnap.getLong("remaining")?.toInt() ?: 0
 
-                if (claimedPortions <= 0) throw Exception("Jumlah porsi tidak valid.")
-                if (claimedPortions > currentRemaining) throw Exception("Porsi tidak mencukupi.")
-
+                if (claimedPortions <= 0 || claimedPortions > currentRemaining) {
+                    throw Exception("Porsi tidak valid/mencukupi.")
+                }
                 val newRemaining = currentRemaining - claimedPortions
                 transaction.update(foodRef, "remaining", newRemaining)
 
@@ -220,33 +202,23 @@ class FoodRepository(
         }
     }
 
-    // ----------------------------------------------------
-    // 5. Donor mencari klaim berdasarkan kode verifikasi
-    // ----------------------------------------------------
+    /**
+     * Cari Claim berdasarkan kode verifikasi.
+     */
     suspend fun getClaimByCode(code: String): Result<Pair<Claim, Food>> {
         return try {
             val snapshot = db.collection("claims")
                 .whereEqualTo("verificationCode", code)
                 .whereEqualTo("status", "PENDING")
                 .limit(1)
-                .get()
-                .await()
+                .get().await()
 
             if (snapshot.isEmpty) {
-                return Result.failure(Exception("Kode tidak ditemukan atau sudah digunakan."))
+                return Result.failure(Exception("Kode tidak ditemukan/sudah digunakan."))
             }
 
-            val claimDoc = snapshot.documents.first()
-            val claim = claimDoc.toObject(Claim::class.java)
-                ?: return Result.failure(Exception("Data klaim tidak valid."))
-
-            val foodDoc = db.collection("foods")
-                .document(claim.foodId)
-                .get()
-                .await()
-
-            val food = foodDoc.toObject(Food::class.java)
-                ?: return Result.failure(Exception("Data makanan tidak ditemukan."))
+            val claim = snapshot.documents.first().toObject(Claim::class.java) ?: throw Exception("Data klaim tidak valid.")
+            val food = db.collection("foods").document(claim.foodId).get().await().toObject(Food::class.java) ?: throw Exception("Data makanan tidak ditemukan.")
 
             Result.success(claim to food)
         } catch (e: Exception) {
@@ -254,40 +226,31 @@ class FoodRepository(
         }
     }
 
-    // ----------------------------------------------------
-    // 6. Donor menekan "Sudah Diambil"
-    // ----------------------------------------------------
+    /**
+     * Konfirmasi Claim (ubah status ke "COMPLETED").
+     */
     suspend fun confirmClaimByCode(code: String): Result<Unit> {
         return try {
             val claimsSnap = db.collection("claims")
                 .whereEqualTo("verificationCode", code)
                 .whereEqualTo("status", "PENDING")
                 .limit(1)
-                .get()
-                .await()
+                .get().await()
 
             if (claimsSnap.isEmpty) {
-                return Result.failure(Exception("Kode tidak ditemukan atau sudah dikonfirmasi."))
+                return Result.failure(Exception("Kode tidak ditemukan/sudah dikonfirmasi."))
             }
 
-            val claimDoc = claimsSnap.documents.first()
-            val claimRef = claimDoc.reference
+            val claimRef = claimsSnap.documents.first().reference
 
             db.runTransaction { tx ->
-                val freshClaimSnap = tx.get(claimRef)
-                val freshClaimStatus = freshClaimSnap.getString("status") ?: "PENDING"
+                val freshClaimStatus = tx.get(claimRef).getString("status") ?: "PENDING"
 
                 if (freshClaimStatus != "PENDING") {
                     throw Exception("Klaim sudah diproses.")
                 }
 
-                tx.update(
-                    claimRef,
-                    mapOf(
-                        "status" to "COMPLETED",
-                        "confirmedAt" to System.currentTimeMillis()
-                    )
-                )
+                tx.update(claimRef, mapOf("status" to "COMPLETED", "confirmedAt" to System.currentTimeMillis()))
             }.await()
 
             Result.success(Unit)
@@ -296,9 +259,9 @@ class FoodRepository(
         }
     }
 
-    // -------------------------
-    // 7. History Penerima
-    // -------------------------
+    /**
+     * Riwayat klaim (Claim) untuk Penerima.
+     */
     suspend fun getHistoryForReceiver(): Result<List<Claim>> {
         return try {
             val receiverId = auth.currentUser?.uid
@@ -306,8 +269,7 @@ class FoodRepository(
 
             val snapshot = db.collection("claims")
                 .whereEqualTo("receiverId", receiverId)
-                .get()
-                .await()
+                .get().await()
 
             val claims = snapshot.documents
                 .mapNotNull { it.toObject(Claim::class.java) }
@@ -319,9 +281,9 @@ class FoodRepository(
         }
     }
 
-    // -------------------------
-// 8. History Donor
-// -------------------------
+    /**
+     * Riwayat donasi (Food) untuk Donor.
+     */
     suspend fun getDonorHistory(): Result<List<Food>> {
         return try {
             val donorId = auth.currentUser?.uid
@@ -331,17 +293,11 @@ class FoodRepository(
 
             val snapshot = db.collection("foods")
                 .whereEqualTo("donorId", donorId)
-                .get()
-                .await()
+                .get().await()
 
             val foods = snapshot.documents
                 .mapNotNull { it.toObject(Food::class.java) }
-                // MASUK RIWAYAT JIKA:
-                // - sudah lewat batas waktu ATAU
-                // - porsinya sudah habis (remaining <= 0)
-                .filter { food ->
-                    food.expiresAt <= now || food.remaining <= 0
-                }
+                .filter { food -> food.expiresAt <= now || food.remaining <= 0 }
                 .sortedByDescending { it.expiresAt }
 
             Result.success(foods)

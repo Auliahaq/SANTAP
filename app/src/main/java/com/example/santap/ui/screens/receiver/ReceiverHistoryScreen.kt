@@ -20,7 +20,7 @@ import com.example.santap.data.Claim
 fun ReceiverHistoryScreen(
     history: List<Claim>,
     onBack: () -> Unit,
-    onItemClick: (Claim) -> Unit   // <- callback ketika item diklik
+    onItemClick: (Claim) -> Unit
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.secondary
@@ -38,6 +38,8 @@ fun ReceiverHistoryScreen(
             )
         }
     ) { padding ->
+
+        // kalau kosong
         if (history.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -48,6 +50,8 @@ fun ReceiverHistoryScreen(
                 Text("Belum ada riwayat pengambilan.")
             }
         } else {
+
+            // list riwayat
             LazyColumn(
                 modifier = Modifier
                     .padding(padding)
@@ -58,37 +62,24 @@ fun ReceiverHistoryScreen(
                 items(history) { claim ->
                     Card(
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        ),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onItemClick(claim) }   // <- di-tap, kirim claim
+                            .clickable { onItemClick(claim) }
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             Text(
-                                text = claim.foodName,
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                                claim.foodName,
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
                             )
-                            Text(
-                                text = claim.location,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                            Text(
-                                text = "${claim.expiryDate} • ${claim.expiryTime}",
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                            Text(
-                                text = "Kode: ${claim.verificationCode}",
-                                style = MaterialTheme.typography.bodySmall
-                            )
+                            Text(claim.location, style = MaterialTheme.typography.bodySmall)
+                            Text("${claim.expiryDate} • ${claim.expiryTime}", style = MaterialTheme.typography.bodySmall)
+                            Text("Kode: ${claim.verificationCode}", style = MaterialTheme.typography.bodySmall)
+
+                            // status
                             Text(
                                 text = "Status: ${claim.status}",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    fontWeight = FontWeight.Bold
-                                ),
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                                 color = when (claim.status) {
                                     "COMPLETED" -> primaryColor
                                     "PENDING" -> secondaryColor

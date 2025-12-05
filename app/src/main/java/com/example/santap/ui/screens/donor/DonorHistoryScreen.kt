@@ -36,6 +36,7 @@ fun DonorHistoryScreen(
         }
     ) { innerPadding ->
         if (foods.isEmpty()) {
+            //  pesan kosong
             Box(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -45,6 +46,7 @@ fun DonorHistoryScreen(
                 Text("Belum ada riwayat donasi.")
             }
         } else {
+            // daftar riwayat
             LazyColumn(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -53,7 +55,7 @@ fun DonorHistoryScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(foods) { food ->
-                    DonorHistoryItem(food = food)
+                    DonorHistoryItem(food)
                 }
             }
         }
@@ -62,6 +64,7 @@ fun DonorHistoryScreen(
 
 @Composable
 private fun DonorHistoryItem(food: Food) {
+    // item riwayat donasi
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp)
@@ -94,6 +97,7 @@ private fun DonorHistoryItem(food: Food) {
                 )
             }
 
+            // status akhir donasi
             val status = when {
                 food.remaining <= 0 -> "Status: Habis diambil"
                 else -> "Status: Melewati batas waktu"
@@ -109,6 +113,7 @@ private fun DonorHistoryItem(food: Food) {
     }
 }
 
+// format tanggal + waktu
 private fun formatExpiresAt(expiresAt: Long): String {
     val date = Date(expiresAt)
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())

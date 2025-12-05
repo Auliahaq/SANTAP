@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.santap.viewmodel.FoodViewModel
@@ -48,7 +49,6 @@ import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Locale
-import androidx.lifecycle.compose.LocalLifecycleOwner
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,36 +58,31 @@ fun AddDonationScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val scrollState = rememberScrollState()
+    val scroll = rememberScrollState()
 
-    // STATE FORM
     var name by remember { mutableStateOf("") }
     var portions by remember { mutableStateOf("") }
-    var expiryDate by remember { mutableStateOf("") }   // yyyy-MM-dd
-    var expiryTime by remember { mutableStateOf("") }   // HH:mm
+    var expiryDate by remember { mutableStateOf("") }
+    var expiryTime by remember { mutableStateOf("") }
     var locationText by remember { mutableStateOf("") }
     var isGettingLocation by remember { mutableStateOf(false) }
 
-    // FOTO
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
 
-    // PERMISSIONS
     var hasCameraPermission by remember { mutableStateOf(false) }
     var hasLocationPermission by remember { mutableStateOf(false) }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        hasCameraPermission = granted
-    }
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> hasCameraPermission = granted }
 
     val locationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
+        ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->
         hasLocationPermission =
-            (result[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                    result[Manifest.permission.ACCESS_COARSE_LOCATION] == true)
+            result[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                    result[Manifest.permission.ACCESS_COARSE_LOCATION] == true
     }
 
     LaunchedEffect(Unit) {
@@ -120,367 +115,280 @@ fun AddDonationScreen(
             )
         }
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
+                .padding(innerPadding)
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(scroll)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
 
-                // CARD UTAMA FORM
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            // =============== CARD DETAIL ===============
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    Column(
+
+                    Text("Detail Donasi", fontWeight = FontWeight.SemiBold)
+
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Nama Makanan") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = portions,
+                        onValueChange = { portions = it.filter { ch -> ch.isDigit() } },
+                        label = { Text("Jumlah Porsi Tersedia") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Text("Batas Pengambilan", fontWeight = FontWeight.SemiBold)
+
+                    // ---------- TANGGAL ----------
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                            .clickable {
+                                val cal = Calendar.getInstance()
+                                DatePickerDialog(
+                                    context,
+                                    { _, y, m, d ->
+                                        expiryDate = "%04d-%02d-%02d".format(y, m + 1, d)
+                                    },
+                                    cal.get(Calendar.YEAR),
+                                    cal.get(Calendar.MONTH),
+                                    cal.get(Calendar.DAY_OF_MONTH)
+                                ).show()
+                            }
                     ) {
-
-                        Text(
-                            text = "Detail Donasi",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-
-                        // NAMA MAKANAN
                         OutlinedTextField(
-                            value = name,
-                            onValueChange = { name = it },
-                            label = { Text("Nama Makanan") },
-                            modifier = Modifier.fillMaxWidth()
+                            value = expiryDate,
+                            onValueChange = {},
+                            label = { Text("Tanggal Pengambilan") },
+                            modifier = Modifier.fillMaxWidth(),
+                            readOnly = true,
+                            enabled = false, // biar user nggak bisa fokus/ketik
+                            trailingIcon = {
+                                Icon(
+                                    imageVector = Icons.Filled.CalendarMonth,
+                                    contentDescription = "Pilih tanggal"
+                                )
+                            }
                         )
+                    }
 
-                        // JUMLAH PORSI
+                    // ---------- WAKTU ----------
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val cal = Calendar.getInstance()
+                                TimePickerDialog(
+                                    context,
+                                    { _, h, m ->
+                                        expiryTime = "%02d:%02d".format(h, m)
+                                    },
+                                    cal.get(Calendar.HOUR_OF_DAY),
+                                    cal.get(Calendar.MINUTE),
+                                    true
+                                ).show()
+                            }
+                    ) {
                         OutlinedTextField(
-                            value = portions,
-                            onValueChange = { portions = it.filter { ch -> ch.isDigit() } },
-                            label = { Text("Jumlah Porsi Tersedia") },
-                            modifier = Modifier.fillMaxWidth()
+                            value = expiryTime,
+                            onValueChange = {},
+                            label = { Text("Batas Waktu Pengambilan (contoh: 22:00)") },
+                            modifier = Modifier.fillMaxWidth(),
+                            readOnly = true,
+                            enabled = false,
+                            trailingIcon = {
+                                Icon(
+                                    imageVector = Icons.Filled.AccessTime,
+                                    contentDescription = "Pilih waktu"
+                                )
+                            }
                         )
+                    }
 
-                        // TANGGAL & JAM PENGAMBILAN
+                    Divider()
+
+                    Text("Lokasi Pengambilan", fontWeight = FontWeight.SemiBold)
+
+                    Button(
+                        onClick = {
+                            if (!hasLocationPermission) {
+                                locationPermissionLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                        Manifest.permission.ACCESS_COARSE_LOCATION
+                                    )
+                                )
+                            } else {
+                                isGettingLocation = true
+                                locationText = "Mengambil lokasi..."
+                                scope.launch {
+                                    getCurrentAddress(
+                                        context = context,
+                                        fusedLocationClient = fusedLocationClient
+                                    ) { addr ->
+                                        locationText = addr
+                                        isGettingLocation = false
+                                    }
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isGettingLocation,
+                        shape = RoundedCornerShape(50)
+                    ) {
                         Text(
-                            text = "Batas Pengambilan",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold
+                            if (isGettingLocation)
+                                "Mengambil lokasi..."
+                            else
+                                "Gunakan Lokasi Saat Ini"
                         )
+                    }
 
-                        // TANGGAL
+                    OutlinedTextField(
+                        value = locationText,
+                        onValueChange = {},
+                        label = { Text("Alamat / Lokasi Pengambilan") },
+                        modifier = Modifier.fillMaxWidth(),
+                        readOnly = true
+                    )
+                }
+            }
+
+            // =============== CARD FOTO ===============
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+
+                    Text("Foto Makanan", fontWeight = FontWeight.SemiBold)
+
+                    if (hasCameraPermission) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable {
-                                    val cal = Calendar.getInstance()
-                                    DatePickerDialog(
-                                        context,
-                                        { _, year, month, dayOfMonth ->
-                                            expiryDate = String.format(
-                                                "%04d-%02d-%02d",
-                                                year,
-                                                month + 1,
-                                                dayOfMonth
-                                            )
-                                        },
-                                        cal.get(Calendar.YEAR),
-                                        cal.get(Calendar.MONTH),
-                                        cal.get(Calendar.DAY_OF_MONTH)
-                                    ).show()
-                                }
+                                .height(220.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center
                         ) {
-                            OutlinedTextField(
-                                value = expiryDate,
-                                onValueChange = { },
-                                label = { Text("Tanggal Pengambilan") },
-                                modifier = Modifier.fillMaxWidth(),
-                                readOnly = true,
-                                trailingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.CalendarMonth,
-                                        contentDescription = "Pilih tanggal"
-                                    )
-                                }
+                            CameraPreview(
+                                modifier = Modifier.fillMaxSize(),
+                                onImageCaptureCreated = { capture -> imageCapture = capture }
                             )
                         }
-
-                        // JAM
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    val cal = Calendar.getInstance()
-                                    TimePickerDialog(
-                                        context,
-                                        { _, hourOfDay, minute ->
-                                            expiryTime = String.format(
-                                                "%02d:%02d",
-                                                hourOfDay,
-                                                minute
-                                            )
-                                        },
-                                        cal.get(Calendar.HOUR_OF_DAY),
-                                        cal.get(Calendar.MINUTE),
-                                        true
-                                    ).show()
-                                }
-                        ) {
-                            OutlinedTextField(
-                                value = expiryTime,
-                                onValueChange = { },
-                                label = { Text("Batas Waktu Pengambilan (contoh: 22:00)") },
-                                modifier = Modifier.fillMaxWidth(),
-                                readOnly = true,
-                                trailingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.AccessTime,
-                                        contentDescription = "Pilih waktu"
-                                    )
-                                }
-                            )
-                        }
-
-                        Divider(modifier = Modifier.padding(vertical = 4.dp))
-
-                        // LOKASI
-                        Text(
-                            text = "Lokasi Pengambilan",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
 
                         Button(
                             onClick = {
-                                if (!hasLocationPermission) {
-                                    locationPermissionLauncher.launch(
-                                        arrayOf(
-                                            Manifest.permission.ACCESS_FINE_LOCATION,
-                                            Manifest.permission.ACCESS_COARSE_LOCATION
-                                        )
-                                    )
-                                } else {
-                                    isGettingLocation = true
-                                    locationText = "Mengambil lokasi..."
-                                    scope.launch {
-                                        getCurrentAddress(
-                                            context = context,
-                                            fusedLocationClient = fusedLocationClient,
-                                            onResult = { addr ->
-                                                locationText = addr
-                                                isGettingLocation = false
-                                            }
-                                        )
-                                    }
+                                val capture = imageCapture ?: return@Button
+                                val nameFile = "santap_${System.currentTimeMillis()}"
+                                val cv = ContentValues().apply {
+                                    put(MediaStore.MediaColumns.DISPLAY_NAME, nameFile)
+                                    put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
                                 }
+                                val opts = ImageCapture.OutputFileOptions.Builder(
+                                    context.contentResolver,
+                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                    cv
+                                ).build()
+
+                                capture.takePicture(
+                                    opts,
+                                    ContextCompat.getMainExecutor(context),
+                                    object : ImageCapture.OnImageSavedCallback {
+                                        override fun onError(exc: ImageCaptureException) {
+                                            // optional: tampilkan snackbar / error
+                                        }
+
+                                        override fun onImageSaved(out: ImageCapture.OutputFileResults) {
+                                            imageUri = out.savedUri
+                                        }
+                                    }
+                                )
                             },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = !isGettingLocation,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
                             shape = RoundedCornerShape(50)
                         ) {
-                            Text(
-                                if (isGettingLocation)
-                                    "Mengambil lokasi..."
-                                else
-                                    "Gunakan Lokasi Saat Ini"
-                            )
+                            Icon(Icons.Filled.CameraAlt, contentDescription = null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("Ambil Foto")
                         }
-
-                        OutlinedTextField(
-                            value = locationText,
-                            onValueChange = { },
-                            label = { Text("Alamat / Lokasi Pengambilan") },
-                            modifier = Modifier.fillMaxWidth(),
-                            readOnly = true
-                        )
-                    }
-                }
-
-                // CARD FOTO
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-
+                    } else {
                         Text(
-                            text = "Foto Makanan",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
+                            "Izin kamera belum diberikan",
+                            color = MaterialTheme.colorScheme.error
                         )
+                    }
 
-                        if (hasCameraPermission) {
-                            Box(
+                    if (imageUri != null) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Image(
+                                painter = rememberAsyncImagePainter(imageUri),
+                                contentDescription = null,
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(220.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CameraPreview(
-                                    modifier = Modifier.fillMaxSize(),
-                                    onImageCaptureCreated = { imageCapture = it }
-                                )
-                            }
-
-                            Button(
-                                onClick = {
-                                    val capture = imageCapture ?: return@Button
-
-                                    val nameFile = "santap_${System.currentTimeMillis()}"
-                                    val contentValues = ContentValues().apply {
-                                        put(MediaStore.MediaColumns.DISPLAY_NAME, nameFile)
-                                        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-                                    }
-
-                                    val outputOptions = ImageCapture.OutputFileOptions.Builder(
-                                        context.contentResolver,
-                                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                                        contentValues
-                                    ).build()
-
-                                    capture.takePicture(
-                                        outputOptions,
-                                        ContextCompat.getMainExecutor(context),
-                                        object : ImageCapture.OnImageSavedCallback {
-                                            override fun onError(exc: ImageCaptureException) {
-                                                // kalau mau, bisa tambahkan snackbar / state error
-                                            }
-
-                                            override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                                                imageUri = output.savedUri
-                                            }
-                                        }
-                                    )
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp),
-                                shape = RoundedCornerShape(50),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = Color.White
-                                )
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Filled.CameraAlt,
-                                    contentDescription = null
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text("Cekrek / Ambil Foto")
-                            }
-                        } else {
-                            Text(
-                                "Izin kamera belum diberikan",
-                                color = MaterialTheme.colorScheme.error
+                                    .size(72.dp)
+                                    .clip(RoundedCornerShape(12.dp)),
+                                contentScale = ContentScale.Crop
                             )
-                        }
-
-                        if (imageUri != null) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(72.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Image(
-                                        painter = rememberAsyncImagePainter(imageUri),
-                                        contentDescription = "Foto makanan",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                }
-                                Text(
-                                    text = "Foto berhasil diambil.",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
+                            Spacer(Modifier.width(8.dp))
+                            Text("Foto berhasil diambil.")
                         }
                     }
                 }
+            }
 
-                // STATUS ERROR / SUCCESS
-                if (error != null) {
-                    Text(
-                        error,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                if (success != null) {
-                    Text(
-                        success,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
+            if (error != null) {
+                Text(error, color = MaterialTheme.colorScheme.error)
+            }
+            if (success != null) {
+                Text(success, color = MaterialTheme.colorScheme.primary)
+            }
 
-                // Validasi form (tidak mengubah logika backend, hanya bantu enable/disable button)
-                val canSubmit = remember(name, portions, expiryDate, expiryTime, isLoading) {
-                    name.isNotBlank() &&
-                            (portions.toIntOrNull()?.let { it > 0 } == true) &&
-                            expiryDate.isNotBlank() &&
-                            expiryTime.isNotBlank() &&
-                            !isLoading
-                }
+            val canSubmit = name.isNotBlank() &&
+                    (portions.toIntOrNull()?.let { it > 0 } == true) &&
+                    expiryDate.isNotBlank() &&
+                    expiryTime.isNotBlank() &&
+                    !isLoading
 
-                // BUTTON SIMPAN
-                Button(
-                    onClick = {
-                        val porsi = portions.toInt()
-                        foodViewModel.addDonation(
-                            context = context,
-                            name = name,
-                            totalPortions = porsi,
-                            expiryDate = expiryDate,
-                            expiryTime = expiryTime,
-                            location = locationText,
-                            imageUri = imageUri
-                        ) {
-                            onBack()
-                        }
-                    },
-                    enabled = canSubmit,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(if (isLoading) "Menyimpan..." else "Simpan Donasi")
-                }
-
-                Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = {
+                    foodViewModel.addDonation(
+                        context = context,
+                        name = name,
+                        totalPortions = portions.toInt(),
+                        expiryDate = expiryDate,
+                        expiryTime = expiryTime,
+                        location = locationText,
+                        imageUri = imageUri
+                    ) {
+                        onBack()
+                    }
+                },
+                enabled = canSubmit,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(50)
+            ) {
+                Text(if (isLoading) "Menyimpan..." else "Simpan Donasi")
             }
         }
     }
@@ -493,12 +401,12 @@ private fun getCurrentAddress(
     onResult: (String) -> Unit
 ) {
     fusedLocationClient.lastLocation
-        .addOnSuccessListener { location ->
-            if (location != null) {
-                val geocoder = android.location.Geocoder(context, Locale.getDefault())
-                val list = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-                val address = list?.firstOrNull()?.getAddressLine(0) ?: "Lokasi tidak diketahui"
-                onResult(address)
+        .addOnSuccessListener { loc ->
+            if (loc != null) {
+                val geo = android.location.Geocoder(context, Locale.getDefault())
+                val list = geo.getFromLocation(loc.latitude, loc.longitude, 1)
+                val addr = list?.firstOrNull()?.getAddressLine(0) ?: "Lokasi tidak diketahui"
+                onResult(addr)
             } else {
                 onResult("Lokasi tidak tersedia")
             }
@@ -517,28 +425,27 @@ private fun CameraPreview(
     val lifecycleOwner = LocalLifecycleOwner.current
 
     AndroidView(
+        modifier = modifier,
         factory = { ctx ->
             val previewView = PreviewView(ctx)
-
             val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+
             cameraProviderFuture.addListener({
                 val cameraProvider = cameraProviderFuture.get()
-
                 val preview = Preview.Builder().build().also {
                     it.setSurfaceProvider(previewView.surfaceProvider)
                 }
-
-                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-                val imageCapture = ImageCapture.Builder().build()
-                onImageCaptureCreated(imageCapture)
+                val selector = CameraSelector.DEFAULT_BACK_CAMERA
+                val capture = ImageCapture.Builder().build()
+                onImageCaptureCreated(capture)
 
                 try {
                     cameraProvider.unbindAll()
                     cameraProvider.bindToLifecycle(
                         lifecycleOwner,
-                        cameraSelector,
+                        selector,
                         preview,
-                        imageCapture
+                        capture
                     )
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -546,7 +453,6 @@ private fun CameraPreview(
             }, ContextCompat.getMainExecutor(ctx))
 
             previewView
-        },
-        modifier = modifier
+        }
     )
 }

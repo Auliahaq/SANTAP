@@ -46,6 +46,7 @@ fun ReceiverFoodDetailScreen(
             )
         }
     ) { padding ->
+
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -53,17 +54,14 @@ fun ReceiverFoodDetailScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // ==== KARTU UTAMA: FOTO + INFO MAKANAN ====
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column {
 
-                    // FOTO MAKANAN
+                    // foto makanan
                     if (food.photoUrl.isNotBlank()) {
                         Image(
                             painter = rememberAsyncImagePainter(food.photoUrl),
@@ -71,30 +69,15 @@ fun ReceiverFoodDetailScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(200.dp)
-                                .clip(
-                                    RoundedCornerShape(
-                                        topStart = 16.dp,
-                                        topEnd = 16.dp,
-                                        bottomStart = 0.dp,
-                                        bottomEnd = 0.dp
-                                    )
-                                ),
+                                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
                             contentScale = ContentScale.Crop
                         )
                     } else {
-                        // Placeholder kalau tidak ada foto
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(200.dp)
-                                .clip(
-                                    RoundedCornerShape(
-                                        topStart = 16.dp,
-                                        topEnd = 16.dp,
-                                        bottomStart = 0.dp,
-                                        bottomEnd = 0.dp
-                                    )
-                                )
+                                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                                 .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center
                         ) {
@@ -107,81 +90,54 @@ fun ReceiverFoodDetailScreen(
                         }
                     }
 
-                    // DETAIL TEKS
+                    // detail teks
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp)
                     ) {
+
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Outlined.Restaurant,
-                                contentDescription = null,
-                                tint = primaryColor
-                            )
+                            Icon(Icons.Outlined.Restaurant, null, tint = primaryColor)
                             Spacer(Modifier.width(8.dp))
                             Column {
                                 Text(
                                     text = food.name,
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.SemiBold
-                                    )
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                                 )
-                                Text(
-                                    text = "${food.remaining} porsi tersedia",
-                                    style = MaterialTheme.typography.bodySmall
-                                )
+                                Text("${food.remaining} porsi tersedia", style = MaterialTheme.typography.bodySmall)
                             }
                         }
 
                         Spacer(Modifier.height(12.dp))
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Outlined.LocationOn,
-                                contentDescription = null,
-                                tint = secondaryColor
-                            )
+                            Icon(Icons.Outlined.LocationOn, null, tint = secondaryColor)
                             Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = food.location,
-                                style = MaterialTheme.typography.bodySmall
-                            )
+                            Text(food.location, style = MaterialTheme.typography.bodySmall)
                         }
 
                         Spacer(Modifier.height(8.dp))
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Outlined.AccessTime,
-                                contentDescription = null,
-                                tint = primaryColor
-                            )
+                            Icon(Icons.Outlined.AccessTime, null, tint = primaryColor)
                             Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = "${food.expiryDate} • ${food.expiryTime}",
-                                style = MaterialTheme.typography.bodySmall
-                            )
+                            Text("${food.expiryDate} • ${food.expiryTime}", style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
             }
 
-            // ERROR MESSAGE
+            // pesan error
             if (error != null) {
-                Text(
-                    text = error,
-                    color = MaterialTheme.colorScheme.error
-                )
+                Text(error, color = MaterialTheme.colorScheme.error)
             }
 
-            // KOTAK KODE VERIFIKASI (JIKA SUDAH KLAIM)
+            // kartu kode verifikasi
             if (!verificationCode.isNullOrBlank()) {
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    ),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -191,14 +147,12 @@ fun ReceiverFoodDetailScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Kode Klaim Unik",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.SemiBold
-                            )
+                            "Kode Klaim Unik",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text = verificationCode,
+                            verificationCode,
                             style = MaterialTheme.typography.headlineMedium.copy(
                                 fontWeight = FontWeight.ExtraBold,
                                 color = primaryColor
@@ -206,23 +160,21 @@ fun ReceiverFoodDetailScreen(
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = "Tunjukkan kode ini kepada pendonor saat mengambil makanan.",
+                            "Tunjukkan kode ini ke pendonor saat mengambil makanan.",
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
                 }
             }
 
-            // TOMBOL KLAIM
+            // tombol ambil
             Button(
                 onClick = onClaimClick,
                 enabled = !isLoading && verificationCode.isNullOrBlank(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = primaryColor
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
             ) {
                 Text(if (isLoading) "Memproses..." else "Ambil Makanan")
             }

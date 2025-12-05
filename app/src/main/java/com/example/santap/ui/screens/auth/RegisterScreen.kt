@@ -18,12 +18,14 @@ fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     onBack: () -> Unit
 ) {
+    // state input form
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var selectedRole by remember { mutableStateOf("receiver") }
+    var selectedRole by remember { mutableStateOf("receiver") } // donor / receiver
 
+    // status dari ViewModel
     val isLoading = authViewModel.isLoading
     val error = authViewModel.errorMessage
 
@@ -32,14 +34,14 @@ fun RegisterScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // card utama tempat form
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
-                    .offset(y = (-360).dp),   // cukup naik dikit aja
+                    .offset(y = (-360).dp),
                 shape = MaterialTheme.shapes.large,
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -48,8 +50,7 @@ fun RegisterScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Top
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = "Daftar Akun SANTAP",
@@ -63,6 +64,7 @@ fun RegisterScreen(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
 
+                    // input nama
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
@@ -70,6 +72,7 @@ fun RegisterScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    // input nomor telepon
                     OutlinedTextField(
                         value = phone,
                         onValueChange = { phone = it },
@@ -77,6 +80,7 @@ fun RegisterScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    // input email
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
@@ -84,6 +88,7 @@ fun RegisterScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    // input password
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
@@ -92,6 +97,7 @@ fun RegisterScreen(
                         visualTransformation = PasswordVisualTransformation()
                     )
 
+                    // pilih role akun
                     Text("Daftar sebagai:")
 
                     Row(
@@ -101,23 +107,16 @@ fun RegisterScreen(
                         FilterChip(
                             selected = selectedRole == "donor",
                             onClick = { selectedRole = "donor" },
-                            label = { Text("Donor") },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                                selectedLabelColor = MaterialTheme.colorScheme.primary
-                            )
+                            label = { Text("Donor") }
                         )
                         FilterChip(
                             selected = selectedRole == "receiver",
                             onClick = { selectedRole = "receiver" },
-                            label = { Text("Penerima") },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                                selectedLabelColor = MaterialTheme.colorScheme.primary
-                            )
+                            label = { Text("Penerima") }
                         )
                     }
 
+                    // tampilin error kalau ada
                     if (error != null) {
                         Text(
                             text = error,
@@ -126,6 +125,7 @@ fun RegisterScreen(
                         )
                     }
 
+                    // tombol daftar → lanjut kalau sukses
                     Button(
                         onClick = {
                             authViewModel.register(
@@ -149,13 +149,12 @@ fun RegisterScreen(
                         )
                     }
 
+                    // balik ke halaman sebelumnya
                     TextButton(onClick = onBack) {
                         Text("Kembali")
                     }
                 }
             }
-
-//            Spacer(modifier = Modifier.height(24.dp)) // napas di bawah card
         }
     }
 }

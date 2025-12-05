@@ -22,6 +22,7 @@ class AuthViewModel(
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
+    // register & login
     fun register(
         name: String,
         phone: String,
@@ -38,16 +39,14 @@ class AuthViewModel(
             isLoading = false
 
             result.onSuccess {
-                // setelah register, langsung login
-                login(email, password) {
-                    onSuccess()
-                }
+                login(email, password) { onSuccess() }
             }.onFailure {
                 errorMessage = it.message
             }
         }
     }
 
+    // login dan menyimpan user
     fun login(
         email: String,
         password: String,
@@ -69,6 +68,7 @@ class AuthViewModel(
         }
     }
 
+    // menghapus sesi user
     fun logout() {
         repository.logout()
         currentUser = null

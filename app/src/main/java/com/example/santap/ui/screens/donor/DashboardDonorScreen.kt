@@ -11,8 +11,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -55,7 +57,7 @@ fun DashboardDonorScreen(
             modifier = Modifier.fillMaxSize()
         ) {
 
-            // ================= HEADER =================
+            // header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -69,7 +71,6 @@ fun DashboardDonorScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                    // KIRI: Logo + Sapaan
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Image(
                             painter = painterResource(id = R.drawable.logo),
@@ -94,7 +95,7 @@ fun DashboardDonorScreen(
                         }
                     }
 
-                    // KANAN: Refresh + Menu hamburger (Profil & Logout)
+                    // aksi header
                     Row(verticalAlignment = Alignment.CenterVertically) {
 
                         IconButton(onClick = onRefresh) {
@@ -140,7 +141,7 @@ fun DashboardDonorScreen(
                 }
             }
 
-            // progress refresh tipis di bawah header
+            //  refresh
             if (isRefreshing) {
                 LinearProgressIndicator(
                     modifier = Modifier
@@ -150,7 +151,7 @@ fun DashboardDonorScreen(
                 )
             }
 
-            // ============== SHEET PUTIH ==============
+            // konten utama
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
@@ -163,7 +164,7 @@ fun DashboardDonorScreen(
                         .padding(top = 16.dp, bottom = 8.dp)
                 ) {
 
-                    // Quick actions
+                    // quick actions
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -205,7 +206,7 @@ fun DashboardDonorScreen(
 
                     Spacer(Modifier.height(20.dp))
 
-                    // Title + Riwayat
+                    // judul & tombol riwayat
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -239,7 +240,7 @@ fun DashboardDonorScreen(
                     Spacer(Modifier.height(8.dp))
 
                     if (foods.isEmpty()) {
-                        // Empty state
+                        // kalau kosong
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -280,6 +281,7 @@ fun DashboardDonorScreen(
                             }
                         }
                     } else {
+                        // list donasi aktif
                         LazyColumn(
                             modifier = Modifier
                                 .weight(1f)
@@ -303,40 +305,98 @@ fun DashboardDonorScreen(
 
 @Composable
 fun DonorFoodItem(food: Food) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-        ),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(
-                Icons.Outlined.Restaurant,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
-            )
 
-            Spacer(Modifier.width(12.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = food.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
+                Icon(
+                    imageVector = Icons.Outlined.Restaurant,
+                    contentDescription = null,
+                    tint = primaryColor,
+                    modifier = Modifier.size(32.dp)
                 )
+
+                Spacer(Modifier.width(12.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = food.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = "${food.remaining} porsi tersisa",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(primaryColor.copy(alpha = 0.08f))
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "Aktif",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = primaryColor,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            // TANGGAL & JAM
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.AccessTime,
+                    contentDescription = null,
+                    tint = primaryColor,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(6.dp))
                 Text(
-                    text = "${food.remaining} porsi tersisa",
+                    text = "${food.expiryDate} • ${food.expiryTime}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
+            }
+
+            // LOKASI
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.LocationOn,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = food.location,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                 )
             }
         }

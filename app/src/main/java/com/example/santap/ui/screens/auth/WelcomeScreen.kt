@@ -3,8 +3,6 @@ package com.example.santap.ui.screens.auth
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -32,18 +30,18 @@ fun WelcomeScreen(
         modifier = Modifier.fillMaxSize()
     ) {
 
-        // 🔥 Tambahkan Background Gambar
+        // background gambar
         Image(
             painter = painterResource(id = R.drawable.background),
             contentDescription = "Background SANTAP",
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop // Agar memenuhi layar tanpa distorsi
+            contentScale = ContentScale.Crop
         )
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.2f)) // bisa 0.7–0.88 sesuai selera
+                .background(Color.Black.copy(alpha = 0.2f))
         )
 
         Column(
@@ -70,15 +68,16 @@ fun WelcomeScreen(
             )
 
             Text(
-                text = "Solusi digital untuk menyalurkan surplus pangan secara efisien, transparan, dan aman.",
+                text = "Salur Pangan Tanpa Pemborosan - Sebuah Platform Solusi digital untuk menyalurkan surplus pangan secara efisien, transparan, dan aman.",
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = White,
                 modifier = Modifier.padding(top = 8.dp)
             )
 
-            Spacer(modifier = Modifier.height(48.dp)) // Jarak sebelum tombol
+            Spacer(modifier = Modifier.height(48.dp))
 
+            // tombol ke halaman login
             Button(
                 onClick = onLoginClick,
                 modifier = Modifier
@@ -93,6 +92,7 @@ fun WelcomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // tombol ke halaman register
             Button(
                 onClick = onRegisterClick,
                 modifier = Modifier

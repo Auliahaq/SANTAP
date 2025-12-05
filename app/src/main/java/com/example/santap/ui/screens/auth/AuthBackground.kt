@@ -25,8 +25,8 @@ fun AuthBackground(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White)          // kalau lewat gambar → putih menyambung
-            .verticalScroll(scrollState)      // 🔥 ini yang bikin SELURUH halaman scroll
+            .background(Color.White)
+            .verticalScroll(scrollState)
     ) {
         Image(
             painter = painterResource(id = R.drawable.login_daftar),

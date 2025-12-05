@@ -18,9 +18,11 @@ fun LoginScreen(
     onLoginSuccessReceiver: () -> Unit,
     onBack: () -> Unit
 ) {
+    // nyimpen input email & password
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    // cek status login dari ViewModel
     val isLoading = authViewModel.isLoading
     val error = authViewModel.errorMessage
 
@@ -29,9 +31,9 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // card tempat form login
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -39,12 +41,9 @@ fun LoginScreen(
                     .offset(y = (-350).dp),
                 shape = MaterialTheme.shapes.large,
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White  // 🔥 warna card putih
-                )
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
-            Column(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(20.dp),
@@ -62,6 +61,7 @@ fun LoginScreen(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
 
+                    // input email
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
@@ -70,6 +70,7 @@ fun LoginScreen(
                         singleLine = true
                     )
 
+                    // input password
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
@@ -79,6 +80,7 @@ fun LoginScreen(
                         visualTransformation = PasswordVisualTransformation()
                     )
 
+                    // kalau login gagal, error muncul di sini
                     if (error != null) {
                         Text(
                             text = error,
@@ -87,14 +89,12 @@ fun LoginScreen(
                         )
                     }
 
+                    // aksi login
                     Button(
                         onClick = {
                             authViewModel.login(email, password) { role ->
-                                if (role == "donor") {
-                                    onLoginSuccessDonor()
-                                } else {
-                                    onLoginSuccessReceiver()
-                                }
+                                if (role == "donor") onLoginSuccessDonor()
+                                else onLoginSuccessReceiver()
                             }
                         },
                         enabled = !isLoading,
@@ -109,6 +109,7 @@ fun LoginScreen(
                         )
                     }
 
+                    // tombol balik
                     TextButton(
                         onClick = onBack,
                         modifier = Modifier.align(Alignment.Start)
@@ -117,8 +118,6 @@ fun LoginScreen(
                     }
                 }
             }
-//            Spacer(modifier = Modifier.height(24.dp)) // napas di bawah card
-
         }
     }
 }

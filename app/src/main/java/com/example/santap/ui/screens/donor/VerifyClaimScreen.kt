@@ -11,8 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.santap.viewmodel.FoodViewModel
-// Hapus import warna yang tidak terpakai/error:
-// import com.example.santap.ui.theme.GreenMain
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,10 +26,10 @@ fun VerifyClaimScreen(
     val claim = foodViewModel.currentClaim
     val food = foodViewModel.currentClaimFood
 
-    // Warna dari Material Theme:
     val primaryColor = MaterialTheme.colorScheme.primary
-    val secondaryColor = MaterialTheme.colorScheme.secondary // Digunakan untuk tombol kritis
+    val secondaryColor = MaterialTheme.colorScheme.secondary
 
+    // layar verifikasi kode klaim
     Scaffold(
         topBar = {
             TopAppBar(
@@ -51,6 +49,7 @@ fun VerifyClaimScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
+            // input kode verifikasi
             OutlinedTextField(
                 value = codeText,
                 onValueChange = { codeText = it },
@@ -59,14 +58,12 @@ fun VerifyClaimScreen(
                 singleLine = true
             )
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            // tombol cek & konfirmasi
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
                     onClick = { foodViewModel.checkClaimByCode(codeText) },
                     enabled = !isLoading,
                     modifier = Modifier.weight(1f),
-                    // Tombol 'Cek Kode' menggunakan Primary Color
                     colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                 ) {
                     Text("Cek Kode")
@@ -80,28 +77,24 @@ fun VerifyClaimScreen(
                     },
                     enabled = !isLoading && claim != null && food != null,
                     modifier = Modifier.weight(1f),
-                    // Tombol 'Konfirmasi' (Aksi Kritis) menggunakan Secondary Color (Amber/Mustard)
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = secondaryColor
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = secondaryColor)
                 ) {
                     Text("Konfirmasi")
                 }
             }
 
+            // status error / sukses
             if (error != null) {
                 Text(error, color = MaterialTheme.colorScheme.error)
             }
             if (success != null) {
-                // Mengganti GreenMain dengan primaryColor
                 Text(success, color = primaryColor, fontWeight = FontWeight.SemiBold)
             }
 
+            // detail klaim (hanya muncul jika kode valid)
             if (claim != null && food != null) {
                 Spacer(Modifier.height(8.dp))
-                Card(
-                    shape = RoundedCornerShape(16.dp)
-                ) {
+                Card(shape = RoundedCornerShape(16.dp)) {
                     Column(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -112,7 +105,6 @@ fun VerifyClaimScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
                         )
-                        // Mengganti GreenMain dengan primaryColor untuk highlight
                         Text("Kode: ${claim.verificationCode}", color = primaryColor, fontWeight = FontWeight.Bold)
                         Text("Penerima: ${claim.receiverName}")
                         Text("Lokasi: ${claim.location}")

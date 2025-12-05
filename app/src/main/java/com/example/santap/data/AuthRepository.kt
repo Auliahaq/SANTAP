@@ -9,7 +9,9 @@ class AuthRepository(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
 
-    // REGISTER
+    /**
+     * Membuat akun Auth dan menyimpan profil User.
+     */
     suspend fun register(
         email: String,
         password: String,
@@ -18,11 +20,10 @@ class AuthRepository(
         role: String
     ): Result<Unit> {
         return try {
-            // 1. Buat akun auth
+            // Buat akun Auth dan dapatkan UID.
             val result = auth.createUserWithEmailAndPassword(email, password).await()
             val uid = result.user!!.uid
 
-            // 2. Simpan data user ke Firestore
             val user = User(
                 id = uid,
                 role = role,
@@ -31,6 +32,7 @@ class AuthRepository(
                 phone = phone
             )
 
+            // Simpan data user ke Firestore.
             db.collection("users").document(uid).set(user).await()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -38,14 +40,16 @@ class AuthRepository(
         }
     }
 
-    // LOGIN
+    /**
+     * Login dan ambil data User.
+     */
     suspend fun login(email: String, password: String): Result<User> {
         return try {
-            // 1. Login ke Firebase Auth
+            // Login ke Firebase Auth.
             val result = auth.signInWithEmailAndPassword(email, password).await()
             val uid = result.user!!.uid
 
-            // 2. Ambil data user dari Firestore
+            // Ambil data User dari Firestore.
             val snapshot = db.collection("users").document(uid).get().await()
             val user = snapshot.toObject(User::class.java)
                 ?: return Result.failure(Exception("User tidak ditemukan di database"))
@@ -56,9 +60,15 @@ class AuthRepository(
         }
     }
 
+    /**
+     * Log out pengguna.
+     */
     fun logout() {
         auth.signOut()
     }
 
+    /**
+     * Dapatkan UID pengguna.
+     */
     fun getCurrentUserId(): String? = auth.currentUser?.uid
 }

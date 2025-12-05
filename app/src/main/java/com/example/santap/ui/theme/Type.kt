@@ -2,41 +2,44 @@ package com.example.santap.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Sementara pakai font default dulu (sans-serif).
-// Nanti kalau mau pakai Poppins / Inter, tinggal kita ganti di sini.
 val Typography = Typography(
-    titleLarge = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 22.sp,
-        lineHeight = 28.sp
+
+    // H1 – judul utama halaman
+    headlineLarge = TextStyle(
+        fontFamily = Poppins,
+        fontWeight = FontWeight.Bold,
+        fontSize = 40.sp
     ),
-    titleMedium = TextStyle(
-        fontFamily = FontFamily.SansSerif,
+
+    // H2 – subjudul / judul section
+    headlineMedium = TextStyle(
+        fontFamily = Poppins,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 18.sp,
-        lineHeight = 24.sp
+        fontSize = 20.sp
     ),
+
+    // Body paragraf utama
     bodyLarge = TextStyle(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = Inter,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 22.sp
+        fontSize = 12.sp
     ),
+
+    // Caption catatan kecil
     bodyMedium = TextStyle(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = Inter,
         fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
-        lineHeight = 20.sp
+        fontSize = 10.sp
     ),
+
+    // Label tombol
     labelLarge = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 14.sp,
-        lineHeight = 20.sp
+        fontFamily = Poppins,
+        fontWeight = FontWeight.Bold,
+        fontSize = 12.sp,
+        letterSpacing = 1.sp // biar terasa uppercase meskipun belum semuanya di uppercase
     )
 )

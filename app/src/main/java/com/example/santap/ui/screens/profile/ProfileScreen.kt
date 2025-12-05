@@ -2,10 +2,8 @@ package com.example.santap.ui.screens.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Logout
@@ -16,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.santap.ui.theme.DeepRed
+import com.example.santap.ui.theme.White
 import com.example.santap.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,9 +28,7 @@ fun ProfileScreen(
     val user = authViewModel.currentUser
     val primaryColor = MaterialTheme.colorScheme.primary
     val bgColor = MaterialTheme.colorScheme.background
-    val scrollState = rememberScrollState()
 
-    // inisial untuk avatar (kalau namanya ada)
     val initial = (user?.name?.firstOrNull()?.uppercaseChar() ?: 'S').toString()
 
     Scaffold(
@@ -39,10 +37,7 @@ fun ProfileScreen(
                 title = { Text("Profil") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Kembali"
-                        )
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
                     }
                 }
             )
@@ -53,13 +48,11 @@ fun ProfileScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
                 .background(bgColor)
-                .verticalScroll(scrollState)
                 .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.Start
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // HEADER PROFIL (avatar + nama)
+            // header
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -74,9 +67,7 @@ fun ProfileScreen(
                 ) {
                     Text(
                         text = initial,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         color = primaryColor
                     )
                 }
@@ -95,13 +86,11 @@ fun ProfileScreen(
                 }
             }
 
-            // KARTU DATA AKUN
+            // akun
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(4.dp)
             ) {
                 Column(
@@ -112,27 +101,19 @@ fun ProfileScreen(
                 ) {
                     Text(
                         text = "Akun Anda",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        )
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )
-
-                    Spacer(Modifier.height(4.dp))
 
                     ProfileItem(label = "Nama", value = user?.name ?: "-")
                     ProfileItem(label = "Email", value = user?.email ?: "-")
                     ProfileItem(label = "Peran", value = user?.role ?: "-")
-                    ProfileItem(
-                        label = "Lokasi Profil",
-                        value = user?.profileLocation ?: "Belum Ditetapkan"
-                    )
+                    ProfileItem(label = "Lokasi Profil", value = user?.profileLocation ?: "Belum Ditetapkan")
                 }
             }
 
-            // jarak sebelum tombol
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
-            // TOMBOL KELUAR
+            // tombol logout
             Button(
                 onClick = {
                     authViewModel.logout()
@@ -141,15 +122,14 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
-                    .padding(bottom = 16.dp)
-                    .navigationBarsPadding(),
+                    .padding(bottom = 16.dp),
                 shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Logout,
-                    contentDescription = null
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = DeepRed,
+                    contentColor = White
                 )
+            ) {
+                Icon(Icons.Default.Logout, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text("Keluar")
             }
@@ -162,6 +142,7 @@ private fun ProfileItem(
     label: String,
     value: String
 ) {
+    // item baris data akun
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxWidth()

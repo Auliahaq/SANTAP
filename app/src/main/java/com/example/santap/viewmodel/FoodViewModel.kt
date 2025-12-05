@@ -13,7 +13,6 @@ import com.example.santap.data.FoodRepository
 import kotlinx.coroutines.launch
 
 class FoodViewModel(
-    // FoodRepository sudah pakai Supabase untuk foto + Firestore untuk data
     private val repository: FoodRepository = FoodRepository()
 ) : ViewModel() {
 
@@ -26,44 +25,39 @@ class FoodViewModel(
     var successMessage by mutableStateOf<String?>(null)
         private set
 
-    // ---------- Donor ----------
-
+    // data donor
     var donorFoods by mutableStateOf<List<Food>>(emptyList())
         private set
 
     var donorHistory by mutableStateOf<List<Food>>(emptyList())
         private set
 
-    // ---------- Penerima ----------
-
+    // data penerima
     var receiverFoods by mutableStateOf<List<Food>>(emptyList())
         private set
 
     var receiverHistory by mutableStateOf<List<Claim>>(emptyList())
         private set
 
+    // detail dan input
     var selectedFood by mutableStateOf<Food?>(null)
         private set
-
-    // porsi yang diinput penerima
     var claimedPortionsInput by mutableStateOf(0)
         private set
-
     var lastVerificationCode by mutableStateOf<String?>(null)
         private set
 
-    // claim yang sedang dicek donor
+    // untuk verifikasi oleh donor
     var currentClaim by mutableStateOf<Claim?>(null)
         private set
-
     var currentClaimFood by mutableStateOf<Food?>(null)
         private set
+
+    // item riwayat yang dipilih
     var historyClaim by mutableStateOf<Claim?>(null)
         private set
 
-    // --------------------------------------------------------------------
-    // DONOR: TAMBAH DONASI
-    // --------------------------------------------------------------------
+    // tambah donasi oleh donor
     fun addDonation(
         context: Context,
         name: String,
@@ -79,63 +73,46 @@ class FoodViewModel(
             errorMessage = null
             successMessage = null
 
-            // Gabungkan tanggal + jam -> millis
             val expiresAt = mergeDateTime(expiryDate, expiryTime)
             val now = System.currentTimeMillis()
-
             if (expiresAt <= now) {
-                // Batas waktu sudah lewat → blok
                 isLoading = false
-                errorMessage = "Batas pengambilan tidak boleh di waktu yang sudah lewat."
+                errorMessage = "Batas pengambilan tidak boleh di waktu yang lewat."
                 return@launch
             }
 
             val result = repository.addFoodDonation(
-                context = context,
-                name = name,
-                totalPortions = totalPortions,
-                expiryDate = expiryDate,
-                expiryTime = expiryTime,
-                expiresAt = expiresAt,
-                location = location,
-                imageUri = imageUri
+                context, name, totalPortions,
+                expiryDate, expiryTime, expiresAt, location, imageUri
             )
 
             isLoading = false
 
-            result
-                .onSuccess {
-                    successMessage = "Donasi berhasil diposting"
-                    loadDonorFoods()
-                    onSuccessNavigate()
-                }
-                .onFailure { e ->
-                    errorMessage = e.localizedMessage ?: "Gagal menyimpan donasi"
-                }
+            result.onSuccess {
+                successMessage = "Donasi berhasil diposting"
+                loadDonorFoods()
+                onSuccessNavigate()
+            }.onFailure {
+                errorMessage = it.localizedMessage ?: "Gagal menyimpan donasi"
+            }
         }
     }
 
-    // --------------------------------------------------------------------
-    // DONOR: LIST & HISTORY
-    // --------------------------------------------------------------------
+    // list & riwayat donor
     fun loadDonorFoods() {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
 
             val result = repository.getFoodsForDonor()
-
             isLoading = false
 
-            result
-                .onSuccess { list ->
-                    val now = System.currentTimeMillis()
-                    // Tambahan filter jaga-jaga: hanya yang belum lewat batas
-                    donorFoods = list.filter { it.expiresAt > now }
-                }
-                .onFailure { e ->
-                    errorMessage = e.localizedMessage ?: "Gagal mengambil data donasi"
-                }
+            result.onSuccess { list ->
+                val now = System.currentTimeMillis()
+                donorFoods = list.filter { it.expiresAt > now }
+            }.onFailure {
+                errorMessage = it.localizedMessage ?: "Gagal mengambil data"
+            }
         }
     }
 
@@ -145,40 +122,28 @@ class FoodViewModel(
             errorMessage = null
 
             val result = repository.getDonorHistory()
-
             isLoading = false
 
-            result
-                .onSuccess { list ->
-                    donorHistory = list
-                }
-                .onFailure { e ->
-                    errorMessage = e.localizedMessage ?: "Gagal mengambil riwayat donasi"
-                }
+            result.onSuccess { donorHistory = it }
+                .onFailure { errorMessage = it.localizedMessage }
         }
     }
 
-    // --------------------------------------------------------------------
-    // PENERIMA: LIST, DETAIL, HISTORY
-    // --------------------------------------------------------------------
+    // list & riwayat penerima
     fun loadReceiverFoods() {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
 
             val result = repository.getFoodsForReceiver()
-
             isLoading = false
 
-            result
-                .onSuccess { list ->
-                    val now = System.currentTimeMillis()
-                    // Jaga-jaga: filter lagi hanya yang aktif
-                    receiverFoods = list.filter { it.expiresAt > now }
-                }
-                .onFailure { e ->
-                    errorMessage = e.localizedMessage ?: "Gagal mengambil data makanan"
-                }
+            result.onSuccess { list ->
+                val now = System.currentTimeMillis()
+                receiverFoods = list.filter { it.expiresAt > now }
+            }.onFailure {
+                errorMessage = it.localizedMessage ?: "Gagal mengambil data"
+            }
         }
     }
 
@@ -188,47 +153,32 @@ class FoodViewModel(
             errorMessage = null
 
             val result = repository.getHistoryForReceiver()
-
             isLoading = false
 
-            result
-                .onSuccess { list ->
-                    receiverHistory = list
-                }
-                .onFailure { e ->
-                    errorMessage = e.localizedMessage ?: "Gagal mengambil riwayat"
-                }
+            result.onSuccess { receiverHistory = it }
+                .onFailure { errorMessage = it.localizedMessage }
         }
     }
 
     fun selectFood(food: Food) {
         selectedFood = food
+        lastVerificationCode = null
+        claimedPortionsInput = 1
+        historyClaim = null
         errorMessage = null
         successMessage = null
-        lastVerificationCode = null      // reset kode kalau bukan dari riwayat
-        claimedPortionsInput = 1
-        historyClaim = null              // reset flag "dibuka dari riwayat"
     }
-    // Dipanggil ketika user klik item di halaman riwayat
+
     fun openFromHistory(claim: Claim) {
         historyClaim = claim
-        // Isi lastVerificationCode supaya di detail langsung tampil kode
         lastVerificationCode = claim.verificationCode
     }
 
-    // Opsional: dipanggil saat back dari detail
     fun clearHistoryClaim() {
         historyClaim = null
     }
 
-
-    fun updateClaimedPortionsInput(portions: Int) {
-        claimedPortionsInput = portions
-    }
-
-    // --------------------------------------------------------------------
-    // PENERIMA: KLAIM MAKANAN
-    // --------------------------------------------------------------------
+    // klaim makanan oleh penerima
     fun claimFood(
         food: Food,
         receiverName: String?,
@@ -241,31 +191,22 @@ class FoodViewModel(
             successMessage = null
             lastVerificationCode = null
 
-            val result = repository.processFoodClaim(
-                food = food,
-                claimedPortions = claimedPortions,
-                receiverName = receiverName
-            )
-
+            val result = repository.processFoodClaim(food, claimedPortions, receiverName)
             isLoading = false
 
-            result
-                .onSuccess { code ->
-                    lastVerificationCode = code
-                    successMessage = "Klaim berhasil dibuat. Tunjukkan kode ini ke pendonor."
-                    loadReceiverFoods()
-                    loadReceiverHistory()
-                    onSuccess()
-                }
-                .onFailure { e ->
-                    errorMessage = e.localizedMessage ?: "Gagal memproses klaim"
-                }
+            result.onSuccess { code ->
+                lastVerificationCode = code
+                successMessage = "Klaim berhasil dibuat"
+                loadReceiverFoods()
+                loadReceiverHistory()
+                onSuccess()
+            }.onFailure {
+                errorMessage = it.localizedMessage ?: "Gagal memproses klaim"
+            }
         }
     }
 
-    // --------------------------------------------------------------------
-    // DONOR: VERIFIKASI KODE
-    // --------------------------------------------------------------------
+    // verifikasi kode oleh donor
     fun checkClaimByCode(code: String) {
         viewModelScope.launch {
             isLoading = true
@@ -275,60 +216,45 @@ class FoodViewModel(
             currentClaimFood = null
 
             val result = repository.getClaimByCode(code.trim())
-
             isLoading = false
 
-            result
-                .onSuccess { (claim, food) ->
-                    currentClaim = claim
-                    currentClaimFood = food
-                }
-                .onFailure { e ->
-                    errorMessage = e.localizedMessage ?: "Kode tidak ditemukan"
-                }
+            result.onSuccess { (claim, food) ->
+                currentClaim = claim
+                currentClaimFood = food
+            }.onFailure {
+                errorMessage = it.localizedMessage ?: "Kode tidak ditemukan"
+            }
         }
     }
 
-    fun confirmClaimByCode(
-        code: String,
-        onSuccess: () -> Unit
-    ) {
+    fun confirmClaimByCode(code: String, onSuccess: () -> Unit) {
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
             successMessage = null
 
             val result = repository.confirmClaimByCode(code.trim())
-
             isLoading = false
 
-            result
-                .onSuccess {
-                    successMessage = "Klaim berhasil dikonfirmasi."
-                    currentClaim = null
-                    currentClaimFood = null
-
-                    loadDonorFoods()
-                    loadReceiverFoods()
-
-                    onSuccess()
-                }
-                .onFailure { e ->
-                    errorMessage = e.localizedMessage ?: "Gagal mengkonfirmasi klaim"
-                }
+            result.onSuccess {
+                successMessage = "Klaim berhasil dikonfirmasi"
+                currentClaim = null
+                currentClaimFood = null
+                loadDonorFoods()
+                loadReceiverFoods()
+                onSuccess()
+            }.onFailure {
+                errorMessage = it.localizedMessage ?: "Gagal mengkonfirmasi klaim"
+            }
         }
     }
 
-    // --------------------------------------------------------------------
-    // Helper: gabung tanggal + jam → millis
-    // --------------------------------------------------------------------
+    // ubah tanggal + jam jadi millis
     private fun mergeDateTime(date: String, timeText: String): Long {
         return try {
-            val text = "$date $timeText"           // "2025-11-25 22:00"
             val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
-            val parsed = sdf.parse(text)
-            parsed?.time ?: 0L
-        } catch (e: Exception) {
+            sdf.parse("$date $timeText")?.time ?: 0L
+        } catch (_: Exception) {
             0L
         }
     }

@@ -8,16 +8,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
-    primary = ForestGreen, // #228B22
+    primary = ForestGreen,
     onPrimary = Color.White,
 
     background = DarkBackground,
-    onBackground = Color.White, // Teks terlihat putih di background gelap
+    onBackground = Color.White,
 
     surface = EndGradient,
     onSurface = Color.White,
 
-    secondary = AmberAccent, // #FFC300
+    secondary = AmberAccent,
     onSecondary = Color.Black,
 
     error = DeepRed, // #D32F2F
@@ -25,25 +25,24 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = ForestGreen, // #228B22
+    primary = ForestGreen,
     onPrimary = Color.White,
 
     background = LightBackground,
-    onBackground = NeutralText, // Teks terlihat gelap di background terang
+    onBackground = NeutralText,
 
     surface = SurfaceWhite,
     onSurface = NeutralText,
 
-    secondary = AmberAccent, // #FFC300
-    onSecondary = Color.Black, // Teks hitam di atas aksen Amber/Kuning
+    secondary = AmberAccent,
+    onSecondary = Color.Black,
 
-    error = DeepRed, // #D32F2F
+    error = DeepRed,
     onError = Color.White
 )
 
 @Composable
 fun SANTAPTheme(
-    // [PERBAIKAN]: Mengatur default ke False (Tema Terang) untuk visibilitas yang lebih baik
     darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -51,7 +50,7 @@ fun SANTAPTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography, // Pastikan Typography sudah didefinisikan di Type.kt
+        typography = Typography,
         content = content
     )
 }

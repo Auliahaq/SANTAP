@@ -60,7 +60,7 @@ fun SantapNavHost(
         startDestination = "welcome"
     ) {
 
-        // ---------------- AUTH ----------------
+        // auth
         composable("welcome") {
             WelcomeScreen(
                 onLoginClick = { navController.navigate("login") },
@@ -108,11 +108,9 @@ fun SantapNavHost(
             )
         }
 
-        // ---------------- DONOR ----------------
+        // donor
         composable("dashboard_donor") {
-            LaunchedEffect(Unit) {
-                foodViewModel.loadDonorFoods()
-            }
+            LaunchedEffect(Unit) { foodViewModel.loadDonorFoods() }
 
             DashboardDonorScreen(
                 foods = foodViewModel.donorFoods,
@@ -123,9 +121,7 @@ fun SantapNavHost(
                     foodViewModel.loadDonorHistory()
                     navController.navigate("donor_history")
                 },
-                onProfileClick = {
-                    navController.navigate("profile")
-                },
+                onProfileClick = { navController.navigate("profile") },
                 onLogout = {
                     authViewModel.logout()
                     navController.navigate("welcome") {
@@ -133,17 +129,12 @@ fun SantapNavHost(
                     }
                 },
                 isRefreshing = foodViewModel.isLoading,
-                onRefresh = {
-                    foodViewModel.loadDonorFoods()
-                }
+                onRefresh = { foodViewModel.loadDonorFoods() }
             )
         }
 
         composable("donor_history") {
-            LaunchedEffect(Unit) {
-                foodViewModel.loadDonorHistory()
-            }
-
+            LaunchedEffect(Unit) { foodViewModel.loadDonorHistory() }
             DonorHistoryScreen(
                 foods = foodViewModel.donorHistory,
                 onBack = { navController.popBackStack() }
@@ -164,11 +155,9 @@ fun SantapNavHost(
             )
         }
 
-        // ---------------- RECEIVER ----------------
+        // receiver
         composable("home_receiver") {
-            LaunchedEffect(Unit) {
-                foodViewModel.loadReceiverFoods()
-            }
+            LaunchedEffect(Unit) { foodViewModel.loadReceiverFoods() }
 
             HomeReceiverScreen(
                 foods = foodViewModel.receiverFoods,
@@ -181,9 +170,7 @@ fun SantapNavHost(
                     foodViewModel.loadReceiverHistory()
                     navController.navigate("receiver_history")
                 },
-                onProfileClick = {
-                    navController.navigate("profile")
-                },
+                onProfileClick = { navController.navigate("profile") },
                 onLogout = {
                     authViewModel.logout()
                     navController.navigate("welcome") {
@@ -191,16 +178,12 @@ fun SantapNavHost(
                     }
                 },
                 isRefreshing = foodViewModel.isLoading,
-                onRefresh = {
-                    // ⬅️ untuk penerima harus loadReceiverFoods
-                    foodViewModel.loadReceiverFoods()
-                }
+                onRefresh = { foodViewModel.loadReceiverFoods() }
             )
         }
 
         composable("receiver_detail") {
             val food = foodViewModel.selectedFood
-            val claimedPortions = foodViewModel.claimedPortionsInput
 
             if (food == null) {
                 Text("Data makanan tidak tersedia")
@@ -218,10 +201,8 @@ fun SantapNavHost(
                         foodViewModel.claimFood(
                             food = food,
                             receiverName = authViewModel.currentUser?.name,
-                            claimedPortions = claimedPortions
-                        ) {
-                            // tetap di halaman ini supaya kode verifikasi tampil
-                        }
+                            claimedPortions = foodViewModel.claimedPortionsInput
+                        ) { }
                     }
                 )
             }
@@ -247,7 +228,7 @@ fun SantapNavHost(
             )
         }
 
-        // ---------------- PROFILE ----------------
+        // profile
         composable("profile") {
             ProfileScreen(
                 authViewModel = authViewModel,
