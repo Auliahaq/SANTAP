@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "358812384700",
+    "project_id": "santap-app",
+    "storage_bucket": "santap-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:358812384700:android:71068a0de4da7dcd9c3fb9",
+        "android_client_info": {
+          "package_name": "com.example.santap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYC7XiLPcbXpIM-s3uZNWYv0bpAeKAGfI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
