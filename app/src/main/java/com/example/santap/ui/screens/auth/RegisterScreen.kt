@@ -97,8 +97,13 @@ fun RegisterScreen(
                         visualTransformation = PasswordVisualTransformation()
                     )
 
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     // pilih role akun
                     Text("Daftar sebagai:")
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
 
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),

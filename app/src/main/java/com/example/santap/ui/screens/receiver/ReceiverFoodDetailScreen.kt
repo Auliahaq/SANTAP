@@ -56,7 +56,9 @@ fun ReceiverFoodDetailScreen(
 
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column {
@@ -103,9 +105,14 @@ fun ReceiverFoodDetailScreen(
                             Column {
                                 Text(
                                     text = food.name,
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.SemiBold
+                                    )
                                 )
-                                Text("${food.remaining} porsi tersedia", style = MaterialTheme.typography.bodySmall)
+                                Text(
+                                    "${food.remaining} porsi tersedia",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
                             }
                         }
 
@@ -114,7 +121,10 @@ fun ReceiverFoodDetailScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Outlined.LocationOn, null, tint = secondaryColor)
                             Spacer(Modifier.width(8.dp))
-                            Text(food.location, style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                food.location,
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
 
                         Spacer(Modifier.height(8.dp))
@@ -122,7 +132,30 @@ fun ReceiverFoodDetailScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Outlined.AccessTime, null, tint = primaryColor)
                             Spacer(Modifier.width(8.dp))
-                            Text("${food.expiryDate} • ${food.expiryTime}", style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                "${food.expiryDate} • ${food.expiryTime}",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+
+                        // 🔹 Deskripsi makanan (opsional)
+                        val desc = food.description
+                        if (!desc.isNullOrBlank()) {
+                            Spacer(Modifier.height(12.dp))
+                            Divider()
+                            Spacer(Modifier.height(8.dp))
+
+                            Text(
+                                "Deskripsi",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                desc,
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
                     }
                 }
@@ -137,7 +170,9 @@ fun ReceiverFoodDetailScreen(
             if (!verificationCode.isNullOrBlank()) {
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -148,7 +183,9 @@ fun ReceiverFoodDetailScreen(
                     ) {
                         Text(
                             "Kode Klaim Unik",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold
+                            )
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(

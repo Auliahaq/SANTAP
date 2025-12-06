@@ -8,7 +8,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlin.random.Random
-
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.storage.storage
 
@@ -34,6 +33,7 @@ class FoodRepository(
         expiryTime: String,
         expiresAt: Long,
         location: String,
+        description: String?,      // ⬅️ tambahan
         imageUri: Uri?
     ): Result<Unit> {
         return try {
@@ -44,9 +44,11 @@ class FoodRepository(
                 return Result.failure(Exception("Foto wajib diunggah."))
             }
 
+            // buat dokumen dulu supaya dapat id
             val docRef = db.collection("foods").document()
             val foodId = docRef.id
 
+            // upload foto ke Supabase Storage
             val photoUrl = uploadFoodImage(context, imageUri, foodId).getOrElse {
                 return Result.failure(it)
             }
@@ -61,7 +63,8 @@ class FoodRepository(
                 expiryDate = expiryDate,
                 expiryTime = expiryTime,
                 expiresAt = expiresAt,
-                photoUrl = photoUrl
+                photoUrl = photoUrl,
+                description = description       // ⬅️ simpan ke Firestore
             )
 
             docRef.set(food).await()
@@ -95,7 +98,6 @@ class FoodRepository(
             }
 
             val downloadUrl = bucket.publicUrl(filePath)
-
             Result.success(downloadUrl)
         } catch (e: Exception) {
             Result.failure(e)
@@ -153,7 +155,7 @@ class FoodRepository(
         Random.nextInt(100000, 999999).toString()
 
     /**
-     * Memproses klaim (mengurangi porsi Food & buat Claim baru).
+     * Proses klaim.
      */
     suspend fun processFoodClaim(
         food: Food,
@@ -175,6 +177,7 @@ class FoodRepository(
                 if (claimedPortions <= 0 || claimedPortions > currentRemaining) {
                     throw Exception("Porsi tidak valid/mencukupi.")
                 }
+
                 val newRemaining = currentRemaining - claimedPortions
                 transaction.update(foodRef, "remaining", newRemaining)
 
@@ -217,8 +220,15 @@ class FoodRepository(
                 return Result.failure(Exception("Kode tidak ditemukan/sudah digunakan."))
             }
 
-            val claim = snapshot.documents.first().toObject(Claim::class.java) ?: throw Exception("Data klaim tidak valid.")
-            val food = db.collection("foods").document(claim.foodId).get().await().toObject(Food::class.java) ?: throw Exception("Data makanan tidak ditemukan.")
+            val claim = snapshot.documents.first()
+                .toObject(Claim::class.java)
+                ?: throw Exception("Data klaim tidak valid.")
+
+            val food = db.collection("foods")
+                .document(claim.foodId)
+                .get().await()
+                .toObject(Food::class.java)
+                ?: throw Exception("Data makanan tidak ditemukan.")
 
             Result.success(claim to food)
         } catch (e: Exception) {
@@ -227,7 +237,7 @@ class FoodRepository(
     }
 
     /**
-     * Konfirmasi Claim (ubah status ke "COMPLETED").
+     * Konfirmasi Claim (ubah status ke COMPLETED).
      */
     suspend fun confirmClaimByCode(code: String): Result<Unit> {
         return try {
@@ -244,13 +254,18 @@ class FoodRepository(
             val claimRef = claimsSnap.documents.first().reference
 
             db.runTransaction { tx ->
-                val freshClaimStatus = tx.get(claimRef).getString("status") ?: "PENDING"
-
-                if (freshClaimStatus != "PENDING") {
+                val freshStatus = tx.get(claimRef).getString("status") ?: "PENDING"
+                if (freshStatus != "PENDING") {
                     throw Exception("Klaim sudah diproses.")
                 }
 
-                tx.update(claimRef, mapOf("status" to "COMPLETED", "confirmedAt" to System.currentTimeMillis()))
+                tx.update(
+                    claimRef,
+                    mapOf(
+                        "status" to "COMPLETED",
+                        "confirmedAt" to System.currentTimeMillis()
+                    )
+                )
             }.await()
 
             Result.success(Unit)
@@ -260,7 +275,7 @@ class FoodRepository(
     }
 
     /**
-     * Riwayat klaim (Claim) untuk Penerima.
+     * Riwayat klaim untuk Penerima.
      */
     suspend fun getHistoryForReceiver(): Result<List<Claim>> {
         return try {
@@ -282,7 +297,7 @@ class FoodRepository(
     }
 
     /**
-     * Riwayat donasi (Food) untuk Donor.
+     * Riwayat donasi untuk Donor.
      */
     suspend fun getDonorHistory(): Result<List<Food>> {
         return try {

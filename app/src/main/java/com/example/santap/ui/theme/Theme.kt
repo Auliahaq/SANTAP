@@ -31,7 +31,7 @@ private val LightColorScheme = lightColorScheme(
     background = LightBackground,
     onBackground = NeutralText,
 
-    surface = SurfaceWhite,
+    surface = Color(0xFFFFFFFF),
     onSurface = NeutralText,
 
     secondary = AmberAccent,

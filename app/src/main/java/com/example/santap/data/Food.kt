@@ -10,5 +10,7 @@ data class Food(
     val expiryDate: String = "",
     val expiryTime: String = "",
     val photoUrl: String = "",
-    val expiresAt: Long = 0L
+    val expiresAt: Long = 0L,
+    val description: String? = null
+
 )

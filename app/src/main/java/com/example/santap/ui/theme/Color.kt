@@ -15,3 +15,5 @@ val LightBackground = Color(0xFFF5F5F5)
 val SurfaceWhite = Color(0xFFFFFFFF)
 val NeutralText = Color(0xFF1F2933)
 val White = Color(0xFFFFFFFF)
+
+val SoftCream = Color(0xFFF1EAD1)

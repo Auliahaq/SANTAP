@@ -57,7 +57,7 @@ class FoodViewModel(
     var historyClaim by mutableStateOf<Claim?>(null)
         private set
 
-    // tambah donasi oleh donor
+    // ========= TAMBAH DONASI OLEH DONOR =========
     fun addDonation(
         context: Context,
         name: String,
@@ -65,6 +65,7 @@ class FoodViewModel(
         expiryDate: String,
         expiryTime: String,
         location: String,
+        description: String?,          // ⬅️ deskripsi baru
         imageUri: Uri?,
         onSuccessNavigate: () -> Unit
     ) {
@@ -73,6 +74,7 @@ class FoodViewModel(
             errorMessage = null
             successMessage = null
 
+            // gabungkan tanggal + jam jadi millis
             val expiresAt = mergeDateTime(expiryDate, expiryTime)
             val now = System.currentTimeMillis()
             if (expiresAt <= now) {
@@ -82,8 +84,15 @@ class FoodViewModel(
             }
 
             val result = repository.addFoodDonation(
-                context, name, totalPortions,
-                expiryDate, expiryTime, expiresAt, location, imageUri
+                context = context,
+                name = name,
+                totalPortions = totalPortions,
+                expiryDate = expiryDate,
+                expiryTime = expiryTime,
+                expiresAt = expiresAt,
+                location = location,
+                description = description,    // ⬅️ ikut dikirim ke repo
+                imageUri = imageUri
             )
 
             isLoading = false
@@ -98,7 +107,7 @@ class FoodViewModel(
         }
     }
 
-    // list & riwayat donor
+    // ========= LIST & RIWAYAT DONOR =========
     fun loadDonorFoods() {
         viewModelScope.launch {
             isLoading = true
@@ -129,7 +138,7 @@ class FoodViewModel(
         }
     }
 
-    // list & riwayat penerima
+    // ========= LIST & RIWAYAT PENERIMA =========
     fun loadReceiverFoods() {
         viewModelScope.launch {
             isLoading = true
@@ -178,7 +187,7 @@ class FoodViewModel(
         historyClaim = null
     }
 
-    // klaim makanan oleh penerima
+    // ========= KLAIM MAKANAN OLEH PENERIMA =========
     fun claimFood(
         food: Food,
         receiverName: String?,
@@ -206,7 +215,7 @@ class FoodViewModel(
         }
     }
 
-    // verifikasi kode oleh donor
+    // ========= VERIFIKASI KODE OLEH DONOR =========
     fun checkClaimByCode(code: String) {
         viewModelScope.launch {
             isLoading = true
@@ -249,7 +258,7 @@ class FoodViewModel(
         }
     }
 
-    // ubah tanggal + jam jadi millis
+    // ========= UTIL: ubah tanggal + jam jadi millis =========
     private fun mergeDateTime(date: String, timeText: String): Long {
         return try {
             val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())

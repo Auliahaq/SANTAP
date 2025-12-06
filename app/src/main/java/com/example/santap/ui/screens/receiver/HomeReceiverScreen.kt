@@ -91,7 +91,7 @@ fun HomeReceiverScreen(
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                text = "Pilih makanan yang tersedia sesuai\n batas waktu pengambilan.",
+                                text = "Pilih makanan yang tersedia sesuai\nbatas waktu pengambilan.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
                             )
@@ -248,7 +248,7 @@ private fun ReceiverFoodItem(
             .fillMaxWidth()
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(2.dp)

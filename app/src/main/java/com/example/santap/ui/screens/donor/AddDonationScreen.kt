@@ -33,7 +33,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -65,6 +64,7 @@ fun AddDonationScreen(
     var expiryDate by remember { mutableStateOf("") }
     var expiryTime by remember { mutableStateOf("") }
     var locationText by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }        // ⬅️ baru
     var isGettingLocation by remember { mutableStateOf(false) }
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -124,12 +124,17 @@ fun AddDonationScreen(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
 
-            // =============== CARD DETAIL ===============
+            // CARD DETAIL
             Card(
                 shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(4.dp)
+                elevation = CardDefaults.cardElevation(4.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface,   // << ini dia
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
             ) {
-                Column(
+
+            Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
@@ -150,9 +155,18 @@ fun AddDonationScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    // Deskripsi
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = { Text("Deskripsi Makanan (opsional)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 3
+                    )
+
                     Text("Batas Pengambilan", fontWeight = FontWeight.SemiBold)
 
-                    // ---------- TANGGAL ----------
+                    //  TANGGAL
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -185,7 +199,7 @@ fun AddDonationScreen(
                         )
                     }
 
-                    // ---------- WAKTU ----------
+                    // WAKTU
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -267,12 +281,16 @@ fun AddDonationScreen(
                 }
             }
 
-            // =============== CARD FOTO ===============
+            //  CARD FOTO
             Card(
                 shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(4.dp)
+                elevation = CardDefaults.cardElevation(4.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
             ) {
-                Column(
+            Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -313,7 +331,7 @@ fun AddDonationScreen(
                                     ContextCompat.getMainExecutor(context),
                                     object : ImageCapture.OnImageSavedCallback {
                                         override fun onError(exc: ImageCaptureException) {
-                                            // optional: tampilkan snackbar / error
+                                            // bisa tampilkan snackbar kalau mau
                                         }
 
                                         override fun onImageSaved(out: ImageCapture.OutputFileResults) {
@@ -377,6 +395,7 @@ fun AddDonationScreen(
                         expiryDate = expiryDate,
                         expiryTime = expiryTime,
                         location = locationText,
+                        description = description.ifBlank { null },   // ⬅️ kirim
                         imageUri = imageUri
                     ) {
                         onBack()
