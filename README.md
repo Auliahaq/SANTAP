@@ -1,4 +1,4 @@
-# 🍽️ SANTAP – Salur Pangan Tanpa Pemborosan
+# SANTAP – Salur Pangan Tanpa Pemborosan
 
 **SANTAP** adalah aplikasi Android berbasis **Jetpack Compose** untuk
 menghubungkan **pendonor makanan** dan **penerima**, sehingga makanan layak konsumsi
